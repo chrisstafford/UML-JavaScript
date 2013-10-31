@@ -27,6 +27,11 @@ a.navlink {
   color: #000000;
 }
 
+a.navlinkhover {
+  font-family: Metrophobic;
+  color: #FFFFFF; 
+}
+
 div.content {
   width: 70%;
   margin-left: auto;
@@ -55,4 +60,10 @@ div.footer {
   border-top-width: 10px;
   font-family: Metrophobic;
   text-align: center;
+}
+
+#wywh {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }

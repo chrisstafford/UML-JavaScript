@@ -13,17 +13,6 @@
         $('.navlink').mouseleave(function() {
           $(this).removeClass("navlinkhover")
         }); //end mouseLeave
-
-        var clear = new Image();
-        clear.src = "images/wywh_clear.jpg"
-        var pixel = new Image();
-        pixel.src = "images/wywh_pixel.jpg"
-        $('#wywh').mouseenter(function() {
-          $(this).attr("src", clear.src);
-        }); // end onMouseOver
-        $('#wywh').mouseleave(function() {
-          $(this).attr("src", pixel.src);
-        }); //end mouseLeave
       });  //end ready
     </script>
   <body>
@@ -49,9 +38,8 @@
     </div>
     <div class="content">
       <h1>
-        Hello
+        Collected Information
       </h1>
-      <img src="images/wywh_pixel.jpg" id="wywh" />
     </div>
     <div class="footer">
       copyright christopher stafford 2013
