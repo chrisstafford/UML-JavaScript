@@ -22,9 +22,38 @@ div.nav {
   position: relative;
 }
 
+ul#nav {
+  background-color: #FF4500;
+  width: 70%;
+  border-bottom: 3px;
+  border-radius: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  height: 40px ;
+  color: #000000;
+  text-align: center;
+  padding-top: 20px;
+  font-family: Metrophobic;
+  z-index: 1;
+  position: relative;
+}
+
+#nav ul, #nav li {
+  background-color: #FF4500;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  border-bottom: 3px;
+  border-radius: 5px;
+  margin-top: -6px;
+}
+
 a.navlink {
   font-family: Metrophobic;
   color: #000000;
+  margin: 0px;
+  padding: 0px;
+  border: 1px
 }
 
 a.navlinkhover {
