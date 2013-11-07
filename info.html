@@ -3,6 +3,7 @@
     <link href='http://fonts.googleapis.com/css?family=Metrophobic|Roboto:700' rel='stylesheet' type='text/css'>
     <title>HomePage</title>
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="_js/nav1.1.min.js"></script>
     <link href="css/style.css" rel="stylesheet">
   </head>
     <script>
@@ -13,29 +14,43 @@
         $('.navlink').mouseleave(function() {
           $(this).removeClass("navlinkhover")
         }); //end mouseLeave
+                $('#nav').navPlugin({
+          'itemWidth': 250,
+          'itemHeight': 30,
+          'navEffect': 'fade',
+          'speed': 250,
+          'vertical': false
+        }); //end navPlugin
       });  //end ready
     </script>
   <body>
     <div class="header">
       JavaScript
     </div>
-    <div class="nav">
-      <a class="navlink" href="index.html">
-        home
-      </a>
-      |
-      <a class="navlink" href="info.html">
-        collected information
-      </a>
-      |
-      <a class="navlink" href="newsletter.html">
-        newsletter
-      </a>
-      |
-      <a class="navlink" href="about.html">
-        about
-      </a>
-    </div>
+   <div class="nav">
+    <ul id="nav">
+      <li>
+        <a class="navlink" href="index.html">home</a>
+      </li>
+      <li>
+        <a class="navlink" href="info.html">collected information</a>
+        <ul>
+          <li>
+            <a class="navlink" href="#">article1</a>
+          </li>
+          <li>
+            <a class="navlink" href="#">article2</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a class="navlink" href="newsletter.html">newsletter</a>
+      </li>
+      <li>
+        <a class="navlink" href="about.html">about</a>
+      </li>
+    </ul>
+  </div>
     <div class="content">
       <h1>
         Collected Information
