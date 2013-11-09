@@ -77,6 +77,13 @@ h1 {
   padding-left: 3px;
 }
 
+p {
+  font-family: Roboto;
+  font-size: 1em;
+  margin: 0;
+  padding-left: 3px;
+}
+
 div.footer {
   width: 70%;
   margin-left: auto;

@@ -1,0 +1,162 @@
+<!doctype html>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Metrophobic|Roboto:700' rel='stylesheet' type='text/css'>
+    <title>Obtvse Install</title>
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="_js/nav1.1.min.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+    <script>
+      $(document).ready( function() {
+        $('.navlink').mouseenter(function() {
+          $(this).addClass("navlinkhover");
+        }); // end onMouseOver
+        $('.navlink').mouseleave(function() {
+          $(this).removeClass("navlinkhover")
+        }); //end mouseLeave
+          $('#nav').navPlugin({
+          'itemWidth': 245,
+          'itemHeight': 30,
+          'navEffect': 'fade',
+          'speed': 250,
+          'vertical': false
+        }); //end navPlugin
+      });  //end ready
+    </script>
+  <body>
+    <div class="header">
+      JavaScript
+    </div>
+   <div class="nav">
+    <ul id="nav">
+      <li>
+        <a class="navlink" href="index.html">home</a>
+      </li>
+      <li>
+        <a class="navlink" href="info.html">collected information</a>
+        <ul>
+          <li>
+            <a class="navlink" href="article1.html">Obtvse Install</a>
+          </li>
+          <li>
+            <a class="navlink" href="article2.html">Cross Region AWS</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a class="navlink" href="newsletter.html">newsletter</a>
+      </li>
+      <li>
+        <a class="navlink" href="about.html">about</a>
+      </li>
+    </ul>
+  </div>
+  <div class="content">
+     <p>After a few days of hacking around I was finally able to get obtvse up and running and I&rsquo;ve decided to create a how-to for those who are also having issues.</p>
+
+<p>First things first, let&rsquo;s clone obtvse onto our server.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone http://github.com/NateW/obtvse.git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You&rsquo;ll notice that we are cloning over http as opposed to git.  This is because Bluehost only opens port 80 (http) and 443 (https).</p>
+
+<p>After the clone has completed we need to change directory to ~/obtvse</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd </span>obtvse
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before we can run bundle install we need to edit our Gemfile.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vim Gemfile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Because we are pulling stringex from github we need to change the git protocol to http by replacing</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem <span class="s1">&#39;stringex&#39;</span>, <span class="s1">&#39;~&gt; 1&#39;</span>, git: <span class="s1">&#39;git://github.com/rsl/stringex.git&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>with</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gem <span class="s1">&#39;stringex&#39;</span>, <span class="s1">&#39;~&gt; 1&#39;</span>, git: <span class="s1">&#39;http://github.com/rsl/stringex.git&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can now run</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before we run rake db:migrate we first need to install node.js  I turned to this how-to accomplish this.</p>
+
+<p><strong>Note:</strong> I found that I needed to install node.js into the apps directory (~/obtvse).  To accomplish this change your configure prefix parameters.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./configure --prefix<span class="o">=</span>/home/<span class="o">{</span>username<span class="o">}</span>/node
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./configure --prefix<span class="o">=</span>/home/<span class="o">{</span>username<span class="o">}</span>/obtvse/node
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://rcrisman.net/article/10/installing-nodejs-on-hostmonster-bluehost-accounts">http://rcrisman.net/article/10/installing-nodejs-on-hostmonster-bluehost-accounts</a></p>
+
+<p>From here we can now run</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rake db:migrate
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You are now going to want to edit the config file as outlined in README.md</p>
+
+<p>Bluehost uses Passenger to run ruby on rails apps, to get Passenger to recognize and serve your app you need to edit the .htaccess file in the ~/public_html directory.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vim ~/public_html/.htaccess
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add this to the top of the file.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>    Options -MultiViews
+</span><span class='line'>    PassengerAppRoot /home1/<span class="o">{</span>username<span class="o">}</span>/obtvse
+</span><span class='line'>    PassengerResolveSymlinksInDocumentRoot off
+</span><span class='line'>    <span class="c">#Set this to whatever environment you&#39;ll be running in</span>
+</span><span class='line'>    RailsEnv development
+</span><span class='line'>    RackBaseURI /
+</span><span class='line'>    SetEnv GEM_HOME /home1/<span class="o">{</span>username<span class="o">}</span>/ruby/gems
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Save and hit your domain from your browser.</p>
+
+
+  </div>
+    <div class="footer">
+      copyright christopher stafford 2013
+    </div>
+  </body>
+</html>

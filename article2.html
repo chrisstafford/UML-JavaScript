@@ -1,0 +1,430 @@
+<!doctype html>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Metrophobic|Roboto:700' rel='stylesheet' type='text/css'>
+    <title>Cross Region AWS</title>
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="_js/nav1.1.min.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+    <script>
+      $(document).ready( function() {
+        $('.navlink').mouseenter(function() {
+          $(this).addClass("navlinkhover");
+        }); // end onMouseOver
+        $('.navlink').mouseleave(function() {
+          $(this).removeClass("navlinkhover")
+        }); //end mouseLeave
+          $('#nav').navPlugin({
+          'itemWidth': 245,
+          'itemHeight': 30,
+          'navEffect': 'fade',
+          'speed': 250,
+          'vertical': false
+        }); //end navPlugin
+      });  //end ready
+    </script>
+  <body>
+    <div class="header">
+      JavaScript
+    </div>
+   <div class="nav">
+    <ul id="nav">
+      <li>
+        <a class="navlink" href="index.html">home</a>
+      </li>
+      <li>
+        <a class="navlink" href="info.html">collected information</a>
+        <ul>
+          <li>
+            <a class="navlink" href="article1.html">Obtvse Install</a>
+          </li>
+          <li>
+            <a class="navlink" href="article2.html">Cross Region AWS</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a class="navlink" href="newsletter.html">newsletter</a>
+      </li>
+      <li>
+        <a class="navlink" href="about.html">about</a>
+      </li>
+    </ul>
+  </div>
+    <div class="content">
+        <h2>Overview</h2>
+
+<p>Basically we are going make an image of the EBS volumes attached to the instance you want to run locally and, download them, and finally extract them onto .VHDX  and spin up an new hyper-v machine using that .VHDX</p>
+
+<h2>Create the image of your EBS volume</h2>
+
+<h3>First we need to create a micro linux instance to aid in the creation of the image.</h3>
+
+<ol>
+<li>From your EC2console  click the &ldquo;Launch Instance button&rdquo;</li>
+<li>From here we can select the &ldquo;Classic Wizard&rdquo; and click &ldquo;Continue&rdquo;</li>
+<li>We&rsquo;ll use the Amazon Linux AMI in 64bit</li>
+<li>Now select a &ldquo;T1 Micro&rdquo; instance type and place it in the Availability Zone that the instance we are downloading is currently located.</li>
+<li>Go ahead and continue through and name your instance &ldquo;Migration Helper&rdquo;</li>
+<li>Use the existing key that the instance we are moving currently uses</li>
+<li>Add it to the same security group(s) as well</li>
+</ol>
+
+
+<h3>Next we&rsquo;ll create new EBS volumes, an empty one and a clone of the EBS volume from the instance.</h3>
+
+<ol>
+<li>Find the  EBS ID of your volume by selecting it in the console and scrolling down in the information panel and clicking on the device in &ldquo;Block Devices&rdquo;</li>
+<li>Move to the &ldquo;Volumes&rdquo; console and find your EBS volume.</li>
+<li>Right click the volume and select &ldquo;Create snapshot&rdquo;</li>
+<li>Name the snapshot and set it to create.</li>
+<li>While the snapshot is being created go ahead and create an empty EBS volume the same size as the volume you are currently snapshotting in the same availability zone as the instance we are moving.</li>
+<li>Attach the blank volume to your &ldquo;Migration Helper&rdquo; instance as /dev/sdf.</li>
+<li>Once the snapshot has been created move over to the snapshots console and find the snapshot.</li>
+<li>Right click the snapshot and select &ldquo;Create Volume from Snapshot&rdquo;</li>
+<li>Size it the same as the empty volume you just created and add it to the same availability zone as well.</li>
+<li>Once the volume has been created attach it you your &ldquo;Migration Helper&rdquo; instance as /dev/sdg</li>
+</ol>
+
+
+<h3>Finally we will create the image</h3>
+
+<ul>
+<li>SSH into your &ldquo;Migration Helper instance&rdquo;</li>
+<li>Switch to the root user</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo su -
+</span><span class='line'>
+</span><span class='line'>+ Create a file system on the blank volume
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>bash
+mkfs.ext3 /dev/sdf</p>
+
+<ul>
+<li>Create a mount point and mount the blank volume</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir /mnt/img
+</span><span class='line'>mount /dev/sdf /mnt/img
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Using dd create an image of the cloned volume.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>dd <span class="k">if</span><span class="o">=</span>/dev/sdg | gzip -c  &gt; /mnt/img/sda1.img.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Once the image has been created we need to change ownership of the /mnt/img directory</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>chown -R ec2-user:ec2-user /mnt/img
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Downloading the image</h2>
+
+<h3>First we need to add the AWS key to your local Hyper-V instance</h3>
+
+<ul>
+<li>Create a directory called key in your home directory</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/key
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Create a file called aws.pem</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vim aws.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Paste your private key information into the file, then save and close it.</li>
+<li>Change permissions so only the owner can read and write to the key file.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>chmod 600 aws.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Now we&rsquo;re ready to download the image.</h3>
+
+<ul>
+<li>Create a directory in your home directory to store the image.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/imgStore
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Now using scp we will copy down the image file we created from our &ldquo;Migration Helper&rdquo;</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scp -i ~/key/aws.pem ec2-user@us-west-ip:/mnt/img/sda1.img.gz ~/imgStore
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create a VHDX for the cloned machine</h2>
+
+<h3>First we need to create a blank VHDX to unpack the cloned image onto</h3>
+
+<ul>
+<li>Open Hyper-V Manager</li>
+<li>Select New>Hard Disk&hellip;</li>
+<li>Choose a Fixed size disk</li>
+<li>Choose a name and location for the blank drive</li>
+<li>Size it appropriately to fit the unpacked image</li>
+<li>Review your selections and click finish</li>
+</ul>
+
+
+<h3>Now we need to attach the blank .VHDX to our local Hyoer-V linux instance</h3>
+
+<ul>
+<li>Shut down the instance</li>
+<li>Open the settings forthe instance</li>
+<li>Select IDE Controller 0</li>
+<li>Add a hard drive</li>
+<li>Enter the path of your newly created blank .VHDX</li>
+<li>Click OK, and start the machine back up</li>
+</ul>
+
+
+<h3>Before we can unpack the image onto the new drive we have to re-create the partition table</h3>
+
+<ul>
+<li>Start parted</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>parted
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Set device to the newly attached blank drive</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>parted<span class="o">)</span> <span class="k">select</span> /dev/sdb
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Create the the partition that you will be cloning the image we brought down from EC2 onto. (substitute your own start end values)</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>parted<span class="o">)</span> mkpart primary ext4 0 30000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Next create your swap partition (substitute your own start end values)</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>parted<span class="o">)</span> mkpart primary linux-swap 30000 32048
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Finally we will set the first partition to boot</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>parted<span class="o">)</span> <span class="nb">set </span>1 boot
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Exit parted</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">exit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Now we unpack the image</h3>
+
+<p>As root</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gunzip -c ~/imgStore/sda1.img.gz | dd <span class="nv">of</span><span class="o">=</span>/dev/sdb1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Final config and boot</h2>
+
+<ul>
+<li><p>Because of how EC2 handles virtual instances there are a few things that we need to make a few more changes to get this VM to boot in a timely fashion.</p></li>
+<li><p>First let&rsquo;s mount the new drive and put ourselves in a chroot shell</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mount /dev/sdb1 /mnt
+</span><span class='line'>mount --bind /dev /mnt/dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Now we can chroot into the system and mount some important virtual filesystems</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>chroot /mnt
+</span><span class='line'>mount -t proc none /proc
+</span><span class='line'>mount -t sysfs none /sys
+</span><span class='line'>mount -t devpts none /dev/pts
+</span><span class='line'><span class="nb">export </span><span class="nv">HOME</span><span class="o">=</span>/root
+</span><span class='line'><span class="nb">export </span><span class="nv">LC_ALL</span><span class="o">=</span>C
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Because EC2 instances don&rsquo;t actually have a kernel installed and instead have it loaded by the Xen server on boot, we need to install a kernel via apt-get.</p>
+
+<p>Before we can do this though we need to fix our hosts file so we can access the internet.</p>
+
+<p>We&rsquo;ll do this by copying the host file currently  being used by our current boot drive.</p>
+
+<ul>
+<li>In a new terminal issue these commands</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo cp /mnt/etc/hosts /mnt/etc/hosts.old
+</span><span class='line'>sudo cp /etc/hosts /mnt/etc/hosts
+</span><span class='line'>sudo cp /etc/resolv.conf /mnt/etc/resolv.conf
+</span><span class='line'><span class="nb">exit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Onto installing the kernel!</h3>
+
+<p>There are three kernels that you can install, and it&rsquo;s important to choose the correct one.</p>
+
+<p>Ubuntu 12.10 and above</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 12.04 64-bit</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 12.04 32-bit &lt; 3gig of RAM</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 12.04 32-bit >3 gig of RAM</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic-pae
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 11.10 and below Server</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-server
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 11.10 and below 64-bit</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 11.10 and below 32-bit &lt; 3gig of RAM</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ubuntu 11.10 and below 32-bit >3 gig of RAM</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get install -y linux-image-generic-pae
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Once the kernel is installed we can go ahead and remove the cloud-init package to improve boot times</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apt-get remove cloud-init
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Boot the virtual machine</h2>
+
+<p>Now we create a new virtual machine in Hyper-V using our newly cloned disk and boot.</p>
+
+
+    </div>
+    <div class="footer">
+      copyright christopher stafford 2013
+    </div>
+  </body>
+</html>
